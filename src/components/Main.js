@@ -1,17 +1,15 @@
-import React from 'react'
+import React,{useState} from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import { Button, Icon } from 'semantic-ui-react'
 
-function wordCut(text, limit)
-{
+const wordCut = (text, limit) => {
     text = text.trim();
     if( text.length <= limit) return text;
     text = text.slice( 0, limit);
-    const lastSpace = text.lastIndexOf(" ");
     return text + "...";
 }
 
-function randomInteger(min, max) {
+const randomInteger = (min, max) => {
     let rand = min + Math.random() * (max - min);
     return Math.round(rand);
 }
@@ -67,228 +65,207 @@ const ShowPosts = props => {
     );
 }
 
-class ShowPostsAdmin extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            id: this.props.item.id,
-            watched: this.props.item.watched,
+const ShowPostsAdmin = props => {
+    const [id, setId] = useState(props.item.id);
+    const [watched, setWatched] = useState(props.item.watched);
+    const [title, setTitle] = useState(props.item.title);
+    const [date, setDate] = useState(new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString() + " - Edited");
+    const [description, setDescription] = useState(props.item.description);
+    const [image, setImage] = useState(props.item.image);
+
+    const handleChangeImage = event => {
+      setImage(event.target.value);
+    }
+
+    const handleChangeTitle = event => {
+      setTitle(event.target.value);
+    }
+
+    const handleChangeDescription = event => {
+      setDescription(event.target.value)
+    }
+
+    const handleSubmit = event => {  
+        event.preventDefault(); 
+        
+        let ourState = {
+            id: id,
+            watched: watched,
             date: new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString() + " - Edited",
-            title: this.props.item.title,
-            description: this.props.item.description,
-            image: this.props.item.image,
+            title: title,
+            description: description,
+            image: image
         }
-    
-        this.handleChangeTitle = this.handleChangeTitle.bind(this);
-        this.handleChangeDescription = this.handleChangeDescription.bind(this);
-        this.handleChangeImage = this.handleChangeImage.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-
-        this.EditPost = this.EditPost.bind(this);
-        this.ClosePost = this.ClosePost.bind(this);
+        props.EditPost(ourState, props.id)
     }
 
-    handleChangeImage(event) {
-        this.setState({image: event.target.value});
-        this.setState({date: "Edited - " + new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString()}); //update TIME
+    const ClosePost = () => {
+        props.DeletePost(props.id)       
     }
 
-    handleChangeTitle(event) {
-        this.setState({title: event.target.value});
-        this.setState({date: "Edited - " + new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString()}); //update TIME
+    const EditPost = () => {
+        setId(props.item.id)
+        setWatched(props.item.watched)
+        setTitle(props.item.title)
+        setDate(props.item.date)
+        setDescription(props.item.description)
+        setImage(props.item.image)    
     }
+  
+    const ImageUrlStyle = {backgroundImage:`url(${props.item.image})`}
 
-    handleChangeDescription(event) {
-        this.setState({description: event.target.value})
-        this.setState({date: "Edited - " + new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString()}); //update TIME
-    }
-
-    handleSubmit(event) {  
-        event.preventDefault();  
-        this.props.EditPost(this.state, this.props.id)
-    }
-
-    ClosePost() {
-        this.props.DeletePost(this.props.id)       
-    }
-
-    EditPost() {
-        this.setState({
-            id: this.props.item.id,
-            watched: this.props.item.watched,
-            date: this.props.item.date,
-            title: this.props.item.title,
-            description: this.props.item.description,
-            image: this.props.item.image,
-        })      
-    }
-
-    render() {        
-        let ImageUrlStyle = {backgroundImage:`url(${this.props.item.image})`}
-
-        return (
-            <li className="post__item">
-                <div className="post__image" style={ImageUrlStyle}/>
-                <div className="post__info">
-                    <div className="post__detail">                   
-                        {this.props.opened ?                        
-                            <Link to={`/Admin`}>
-                                <Button size={"large"} content='Go Back'/>
-                            </Link>                                        
-                            :
-                            <Link to={`/Admin/` + `${this.props.item.id}`}>
-                                <Button color={"red"}size={"large"} content='Edit' onClick={this.EditPost}/>
-                            </Link>
-                        }                     
-                        <Button size={"large"} color={"red"} onClick={this.ClosePost}>
-                            {"Delete"}
-                        </Button>
-                        <Button size={"large"}> <Icon name='eye'/>
-                            {this.props.item.watched}
-                        </Button>
-                        <Button size={"large"}>
-                            {this.props.item.date}
-                        </Button>                  
-                    </div>
-
-                    {this.props.opened ?                        
-                        <>
-                            <form onSubmit={this.handleSubmit}>
-                                <label>
-                                    <textarea 
-                                        style={{height: 25+"px"}}
-                                        value={this.state.image}
-                                        onChange={this.handleChangeImage} 
-                                    />
-                                    <textarea 
-                                        style={{height: 25+"px"}}
-                                        value={this.state.title}
-                                        onChange={this.handleChangeTitle} 
-                                    />
-                                    <textarea 
-                                        style={{height: 400+"px"}}
-                                        value={this.state.description}
-                                        onChange={this.handleChangeDescription} 
-                                    />
-                                </label>
-                                <input type="submit" value="Accept changes"/>
-                            </form>
-                        </>                                        
+    return (
+        <li className="post__item">
+            <div className="post__image" style={ImageUrlStyle}/>
+            <div className="post__info">
+                <div className="post__detail">                   
+                    {props.opened ?                        
+                        <Link to={`/Admin`}>
+                            <Button size={"large"} content='Go Back'/>
+                        </Link>                                        
                         :
-                        <>  
-                            <h2 className="post__title">{this.props.item.title}</h2>
-                            <p className="post__description">{wordCut(this.props.item.description, 790)}</p>
-                            <p>id: {this.props.id}</p>
-                        </>  
-                    }
+                        <Link to={`/Admin/` + `${props.item.id}`}>
+                            <Button color={"red"}size={"large"} content='Edit' onClick={EditPost}/>
+                        </Link>
+                    }                     
+                    <Button size={"large"} color={"red"} onClick={ClosePost}>
+                        {"Delete"}
+                    </Button>
+                    <Button size={"large"}> <Icon name='eye'/>
+                        {props.item.watched}
+                    </Button>
+                    <Button size={"large"}>
+                        {props.item.date}
+                    </Button>                  
                 </div>
-            </li>
-        );
-    }   
+
+                {props.opened ?                        
+                    <>
+                        <form onSubmit={handleSubmit}>
+                            <label>
+                                <textarea 
+                                    style={{height: 25+"px"}}
+                                    value={image}
+                                    onChange={handleChangeImage} 
+                                />
+                                <textarea 
+                                    style={{height: 25+"px"}}
+                                    value={title}
+                                    onChange={handleChangeTitle} 
+                                />
+                                <textarea 
+                                    style={{height: 400+"px"}}
+                                    value={description}
+                                    onChange={handleChangeDescription} 
+                                />
+                            </label>
+                            <input type="submit" value="Accept changes"/>
+                        </form>
+                    </>                                        
+                    :
+                    <>  
+                        <h2 className="post__title">{props.item.title}</h2>
+                        <p className="post__description">{wordCut(props.item.description, 790)}</p>
+                        <p>id: {props.id}</p>
+                    </>  
+                }
+            </div>
+        </li>
+    );
+     
 }
 
-class CreatePosts extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            id: randomInteger(100, 1000).toString(),
-            watched: randomInteger(1, 100).toString(),
-            title: "title",
-            date: new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString(),
-            description: "description",
-            image: "https://unsplash.it/250/250?random&i=10"
-        };
-    
-        this.handleChangeTitle = this.handleChangeTitle.bind(this);
-        this.handleChangeDescription = this.handleChangeDescription.bind(this);
-        this.handleChangeImage = this.handleChangeImage.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+const CreatePost = props => {
+    const [id, setId] = useState(randomInteger(100, 1000).toString());
+    const [watched, setWatched] = useState(randomInteger(1, 100).toString());
+    const [title, setTitle] = useState("title");
+    const [date, setDate] = useState(new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString());
+    const [description, setDescription] = useState("description");
+    const [image, setImage] = useState("https://unsplash.it/250/250?random&i=10");
+
+    const handleChangeTitle = event => {
+        setTitle(event.target.value)
     }
 
-    handleChangeTitle(event) {
-        this.setState({title: event.target.value});
-    }
-    handleChangeDescription(event) {
-        this.setState({description: event.target.value});
-    }
-    handleChangeImage(event) {
-        this.setState({image: event.target.value});
+    const handleChangeDescription = event => {
+        setDescription(event.target.value)
     }
 
-    handleSubmit(event) {
-        this.setState({
-            id: randomInteger(100, 1000).toString(),
-            watched: randomInteger(1, 100).toString(),
-            date: new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString(),
-        });
-        this.props.AddPosts([this.state])
+    const handleChangeImage = event => {
+        setImage(event.target.value)
+    }
+
+    const handleSubmit = event => {
+        setWatched(randomInteger(1, 100).toString())
+        setDate(new Date().toLocaleDateString() + " - " + new Date().toLocaleTimeString())
+        props.AddPosts([{
+            id: id,
+            watched: watched,
+            title: title,
+            date: date,
+            description: description,
+            image: image
+        }])
         event.preventDefault();
     }
-
-    render(){ 
-        return (
-            <li className="post__item">
-                <div className="post__image" style={{backgroundImage:`url( ${this.state.image} )`}}/>
-                <div className="post__info">
-                    <form style={{display: "contents"}}onSubmit={this.handleSubmit}>
-                        <textarea style={{height: 25+"px"}} value={this.state.image} onChange={this.handleChangeImage}/>                 
-                        <textarea style={{height: 25+"px"}} value={this.state.title} onChange={this.handleChangeTitle}/> 
-                        <textarea  value={this.state.description} onChange={this.handleChangeDescription}/> 
-                        <input style={{clear : "both"}}type="submit" value="Create new post"/>     
-                    </form>                                                     
-                </div>  
-            </li>
-        );
-    } 
+    
+    return (
+        <li className="post__item">
+            <div className="post__image" style={{backgroundImage:`url( ${image} )`}}/>
+            <div className="post__info">
+                <form style={{display: "contents"}} onSubmit={handleSubmit}>
+                    <textarea style={{height: 25+"px"}} value={image} onChange={handleChangeImage}/>                 
+                    <textarea style={{height: 25+"px"}} value={title} onChange={handleChangeTitle}/> 
+                    <textarea  value={description} onChange={handleChangeDescription}/> 
+                    <input style={{clear : "both"}}type="submit" value="Create new post"/>     
+                </form>                                                     
+            </div>  
+        </li>
+    );    
 }
 
-export default class MainComponent extends React.Component {
-    render() {
-        let opened = false;
-        let posts = this.props.post_Reducer.post;
-        let github_info = this.props.github_Reducer.github
+const MainComponent = props => {
+    let opened = false;
+    let posts = props.post_Reducer.post;
+    let github_info = props.github_Reducer.github
 
-        // direct to Home
-        if (this.props.location.pathname == `/`)
-            return <Redirect from={this.props.location.pathname} to={`/Home`}/>
+    // direct to Home
+    if (props.location.pathname == `/`) 
+    return <Redirect from={props.location.pathname} to={`/Home`}/>
 
+    // direct to Author
+    if (props.location.pathname == `/Author` && github_info != null) 
+    return <ShowGithub git={github_info}/>                      
 
-        // direct to Author
-        if (this.props.location.pathname == `/Author` && github_info != null)
-            return <ShowGithub git={github_info}/>                      
+    // direct to Posts
+    return (
+        <div className={"main"}>
+            {props.location.pathname == `/Admin` && <CreatePost {...props}/>} 
 
-        // direct to Posts
-        return (
-            <div className={"main"}>
-                {this.props.location.pathname == `/Admin` && <CreatePosts {...this.props}/>} 
+            {posts.map( (item, index) => {
+                if (props.location.pathname == `/Admin`) {
+                    opened = false;  
+                    return <ShowPostsAdmin key={index} {...props} item={item} opened={opened} id={index}/>                                                                              
+                }
 
-                {posts.map( (item, index) => {
+                if (props.location.pathname == `/Admin/` + `${item.id}`) {
+                    opened = true;  
+                    return <ShowPostsAdmin key={index} {...props} item={item} opened={opened} id={index}/>                      
+                }
 
-                    if (this.props.location.pathname == `/Admin`)
-                    {
-                        opened = false;  
-                        return <ShowPostsAdmin key={index} {...this.props} item={item} opened={opened} id={index}/>                                                                              
-                    }
+                if (props.location.pathname == `/Home`) {
+                    opened = false;  
+                    return <ShowPosts key={index} {...props} item={item} opened={opened} id={index}/>                       
+                }
 
-                    if (this.props.location.pathname == `/Admin/` + `${item.id}`)
-                    {
-                        opened = true;  
-                        return <ShowPostsAdmin key={index} {...this.props} item={item} opened={opened} id={index}/>                      
-                    }
-
-                    if (this.props.location.pathname == `/Home`)
-                    {
-                        opened = false;  
-                        return <ShowPosts key={index} {...this.props} item={item} opened={opened} id={index}/>                       
-                    }
-
-                    if (this.props.location.pathname == `/Home/` + `${item.id}`)
-                    {
-                        opened = true;  
-                        return <ShowPosts key={index} {...this.props} item={item} opened={opened} id={index}/>                         
-                    }             
-                })}
-            </div>               
-        )       
-    }
+                if (props.location.pathname == `/Home/` + `${item.id}`) {
+                    opened = true;  
+                    return <ShowPosts key={index} {...props} item={item} opened={opened} id={index}/>                         
+                }             
+            })}
+        </div>               
+    )       
+    
 }
+
+export default MainComponent 
